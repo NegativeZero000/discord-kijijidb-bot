@@ -102,3 +102,4 @@ ENV/
 # mypy
 .mypy_cache/
 kijiji-bot-old.py
+*.sublime-workspace

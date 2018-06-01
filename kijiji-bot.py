@@ -9,14 +9,14 @@ from discord.ext.commands import Bot
 import logging
 import os
 from pathlib import Path
-import json
 from pprint import pprint
-import random
-# Database 
+from random import randint, choice
+# Database
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 # Custom Class
 from listing import Listing, Base
+from botconfig import BotConfig
 
 
 # Set up Discord logging
@@ -28,20 +28,6 @@ logger.addHandler(handler)
 
 # Configuration file name. To be located in same directory as script
 config_file_name = "bot_cfg.json"
-default_command_prefix = "#"
-
-class SearchConfig(object):
-    '''Coordinates the pulling of listings from the database and posting them'''
-
-    def __init__(self, dictionary):
-        self.id = dictionary['id']
-        self.search_indecies = dictionary['searchindecies']
-        self.posting_channel = dictionary['posting_channel']
-
-    def __str__(self):
-        return 'Id: {}\nSearch Indecies: {}\nChannel: {}\n'.format(
-            self.id, self.searchindecies, self.posting_channel
-        )
 
 class KijijiListing(object):
     '''The basic Kijiji Listing information'''
@@ -65,7 +51,7 @@ class KijijiListing(object):
     def to_embed(self):
         '''Created a discord embed from this instances properties'''
         listing_embed = discord.Embed(
-            title=self.title, description=self.description, color=discord.Colour(random.randint(0, 16777215)),
+            title=self.title, description=self.description, color=discord.Colour(randint(0, 16777215)),
             url=self.url)
         listing_embed.add_field(name='Location', value=self.location, inline=True)
         listing_embed.add_field(name='Price', value=self.price, inline=True)
@@ -89,6 +75,7 @@ class DatabaseConnection(object):
 
     def close(self):
         # Close an existing session.
+        pass
 
 
 # Scripts running location. Only set if called via python.exe
@@ -104,30 +91,14 @@ config_file_path = Path(os.path.join(__location__, config_file_name))
 # Read in configuration file.
 if(config_file_path.is_file()):
     print("Configuration found in: {}".format(config_file_path))
-    # Load the files key value pairs
-    with open(config_file_path) as json_file:
-        config_options = json.load(json_file)
 
-    pprint(config_options)
+    # Initiate the bot config object from file
+    bot_config = BotConfig(config_file_path)
+    print(str(bot_config))
 else:
     print("The configuration file {} does not exist".format(config_file_path))
 
-# Set the command prefix from config if possible
-if "command_prefix" in config_options.keys():
-    defined_command_prefix = config_options["command_prefix"]
-    print("Using {} as a command declaration string".format(
-        config_options["command_prefix"]))
-else:
-    print("Does not appear to be a key called 'command_prefix'. \
-        Using default: {}".format(default_command_prefix))
-    defined_command_prefix = default_command_prefix
-
-bot = Bot(command_prefix=defined_command_prefix)
-
-# Collect individual database search configs
-search_configs = []
-for search_config in config_options['search']:
-    search_configs.append(SearchConfig(dictionary=search_config))
+bot = Bot(command_prefix=bot_config.command_prefix)
 
 @bot.event
 async def on_ready():
@@ -135,7 +106,7 @@ async def on_ready():
     print("Ready when you are")
     print("I am running on " + bot.user.name)
     print("With the id " + bot.user.id)
-    await bot.change_presence(game=discord.Game(name='hard to get'))
+    await bot.change_presence(game=discord.Game(name=bot_config.randompresence()))
 
 @bot.command(pass_context=True)
 async def ping(context, *args):
@@ -146,12 +117,8 @@ async def ping(context, *args):
     await bot.delete_message(context.message)
     print("{} has pinged".format(context.message.author))
 
-# # Initialize the bot with the config token
-if "token" in (config_options.keys()):
-    # Run the bot with the supplied token
-    print('Discord.py version:', discord.__version__)
 
-    # bot.run(config_options["token"])
+# Run the bot with the supplied token
+print('Discord.py version:', discord.__version__)
 
-else:
-    print("Does not appear to be a key called 'token'")
+# bot.run(config_options["token"])
