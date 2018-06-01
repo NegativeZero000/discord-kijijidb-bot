@@ -129,6 +129,7 @@ async def shutdown():
 @bot.command(aliases=['np'])
 async def newpresence():
     '''Change the bot presence to another from from config'''
+    await bot.get
 
     # Check to see if we have multiple options to choose from
     if bot_config.presence.count > 1:
