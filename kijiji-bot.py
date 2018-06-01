@@ -9,11 +9,11 @@ from discord.ext.commands import Bot
 import logging
 import os
 from pathlib import Path
-from pprint import pprint
-from random import randint, choice
+from random import randint
 # Database
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 # Custom Class
 from listing import Listing, Base
 from botconfig import BotConfig
@@ -100,9 +100,13 @@ else:
 
 bot = Bot(command_prefix=bot_config.command_prefix)
 
+engine = create_engine(bot_config.db_url)
+session = Session(bind=engine)
+Base.metadata.create_all(engine)
+
 @bot.event
 async def on_ready():
-    """Event for when the bot is ready to start working"""
+    '''Event for when the bot is ready to start working'''
     print("Ready when you are")
     print("I am running on " + bot.user.name)
     print("With the id " + bot.user.id)
@@ -110,15 +114,45 @@ async def on_ready():
 
 @bot.command(pass_context=True)
 async def ping(context, *args):
-    """Verifcation that the bot is running and working."""
+    '''Verifcation that the bot is running and working.'''
     await bot.say(":eight_spoked_asterisk: I'm here {}".format(
         context.message.author))
     # Remove the message that triggered this command
     await bot.delete_message(context.message)
     print("{} has pinged".format(context.message.author))
 
+@bot.command()
+async def shutdown():
+    '''Command to shut the bot down'''
+    await bot.logout()
+
+@bot.command(aliases=['np'])
+async def newpresence():
+    '''Change the bot presence to another from from config'''
+
+    # Check to see if we have multiple options to choose from
+    if bot_config.presence.count > 1:
+        # Same one could possibly show.
+        await bot.change_presence(game=discord.Game(name=bot_config.randompresence()))
+    else:
+        await bot.say('I only have one presence.')
+
+@bot.command(pass_context=True)
+async def getlisting(context, id):
+    '''Get a listing from the database matching the id passed'''
+    try:
+        single_listing = session.query(Listing).first()
+    except NoResultFound as e:
+        print(e)
+        await bot.say("No listings available")
+        # Deal with that as well
+
+    if(single_listing):
+        await bot.send_message(destination=bot_config.search[0].posting_channel, embed=single_listing.to_embed())
 
 # Run the bot with the supplied token
 print('Discord.py version:', discord.__version__)
 
-# bot.run(config_options["token"])
+bot.run(bot_config.token)
+print(dir(bot))
+bot.close()
