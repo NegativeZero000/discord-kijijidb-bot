@@ -5,22 +5,17 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
-# Threading
-import asyncio
-import aiofiles
 # Miscellaneous imports
 import logging
-import threading
 import os
 from pathlib import Path
 import json
 from pprint import pprint
-import datetime
-import re
 import random
-import queue
+# Database 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+# Custom Class
 from listing import Listing, Base
 
 
@@ -41,7 +36,7 @@ class SearchConfig(object):
     def __init__(self, dictionary):
         self.id = dictionary['id']
         self.search_indecies = dictionary['searchindecies']
-        self.posting_channel = dictionary['channel']
+        self.posting_channel = dictionary['posting_channel']
 
     def __str__(self):
         return 'Id: {}\nSearch Indecies: {}\nChannel: {}\n'.format(
@@ -117,7 +112,6 @@ bot = Bot(command_prefix=defined_command_prefix)
 search_configs = []
 for search_config in config_options['search']:
     search_configs.append(SearchConfig(dictionary=search_config))
-    print(search_config)
 
 @bot.event
 async def on_ready():
@@ -140,8 +134,6 @@ async def ping(context, *args):
 if "token" in (config_options.keys()):
     # Run the bot with the supplied token
     print('Discord.py version:', discord.__version__)
-
-    print(config_options['search'])
 
     # bot.run(config_options["token"])
 
