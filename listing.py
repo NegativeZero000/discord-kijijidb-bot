@@ -40,13 +40,13 @@ class Listing(Base):
                 changes_markdown += f'__{change["Property"]}:__ _{change["Findings"]}_\n'
         return changes_markdown
 
-    def to_Embed(self):
+    def to_embed(self, **kwargs):
         '''Created a discord embed from this instances properties'''
         # If this listing has been discovered before then it is possible there are changes
         # that should be shown in the message as well.
         if(self.discovered > 0):
             listing_description = (
-                f'{self.description}\n\n'
+                f'{self.shortdescription}\n\n'
                 f'This listing has been found {self.discovered} time(s) before.\n'
             )
             if self.changes:
@@ -55,7 +55,7 @@ class Listing(Base):
                     f'{self.changes_to_string()}'
                 )
         else:
-            listing_description = self.description
+            listing_description = self.shortdescription
 
         listing_as_embed = Embed(
             title=self.title, description=listing_description, color=Colour(randint(0, 16777215)),
@@ -63,7 +63,8 @@ class Listing(Base):
         listing_as_embed.add_field(name='Location', value=self.location, inline=True)
         listing_as_embed.add_field(name='Price', value=self.price, inline=True)
         listing_as_embed.set_image(url=self.imageurl)
-        listing_as_embed.set_thumbnail(
-            url=self.thumbnail)
         listing_as_embed.set_footer(text='Listed: {}'.format(self.posted))
+        if 'thumbnail' in kwargs:
+            listing_as_embed.set_thumbnail(url=kwargs.get('thumbnail'))
+
         return listing_as_embed
