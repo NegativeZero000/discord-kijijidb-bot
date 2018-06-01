@@ -75,6 +75,22 @@ class KijijiListing(object):
         listing_embed.set_footer(text='Listed: {}'.format(self.posted))
         return listing_embed
 
+class DatabaseConnection(object):
+    '''Governs the selecting and updating of listings from the database'''
+    __slots__ = 'search_configs', 'connection_string', 'session'
+
+    def __init__(self, search_configs, connection_string):
+        self.search_configs = search_configs
+        self.connection_string = connection_string
+
+    def open(self):
+        # Use the connection string to start a database session
+        pass
+
+    def close(self):
+        # Close an existing session.
+
+
 # Scripts running location. Only set if called via python.exe
 __location__ = os.path.realpath(
     # From https://docs.python.org/3/library/os.path.html
