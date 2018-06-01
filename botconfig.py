@@ -1,17 +1,19 @@
 from json import load
 from random import choice
+from validators import url
 
 class SearchConfig(object):
     '''Coordinates the pulling of listings from the database and posting them'''
+    __slots__ = 'id', 'search_indecies', 'posting_channel', 'thumbnail'
 
     def __init__(self, dictionary):
 
-        if 'id' in dictionary:
+        if 'id' in dictionary.keys():
             self.id = dictionary['id']
         else:
             raise ValueError('Parameter "id" is required')
 
-        if 'search_indecies' in dictionary:
+        if 'search_indecies' in dictionary.keys():
             self.search_indecies = [item for item in dictionary['search_indecies'] if isinstance(item, int)]
 
             # Verify that search contains at least one item
@@ -20,10 +22,16 @@ class SearchConfig(object):
         else:
             raise ValueError('Parameter "search_indecies" is required')
 
-        if 'posting_channel' in dictionary:
+        if 'posting_channel' in dictionary.keys():
             self.posting_channel = dictionary['posting_channel']
         else:
             raise ValueError('Parameter "posting_channel" is required')
+
+        if 'thumbnail' in dictionary.keys():
+            if url(dictionary['thumbnail']):
+                self.thumbnail = dictionary['thumbnail']
+            else:
+                print(f"Thumbnail for {self.id} failed url validation")
 
     def __str__(self):
         return 'Id: {}\nSearch Indecies: {}\nPosting Channel: {}'.format(
@@ -35,7 +43,7 @@ class SearchConfig(object):
 
 class BotConfig(object):
     ''' Contains all import configuration used for the bot'''
-    __slots__ = 'command_prefix', 'token', 'search', 'presence'
+    __slots__ = 'command_prefix', 'token', 'search', 'presence', 'db_url'
 
     def __init__(self, path):
         '''Using the file path of the config file import and scrub settings '''
@@ -53,6 +61,12 @@ class BotConfig(object):
             self.token = config_options['token']
         else:
             raise ValueError('Parameter "token" is required.')
+
+        # Get the required database url
+        if 'db_url' in config_options.keys():
+            self.db_url = config_options['db_url']
+        else:
+            raise ValueError('Parameter "db_url" is required.')
 
         # Check for the required search object property
         self.search = []
