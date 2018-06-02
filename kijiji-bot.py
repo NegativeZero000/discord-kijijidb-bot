@@ -129,14 +129,16 @@ async def shutdown():
 @bot.command(aliases=['np'])
 async def newpresence():
     '''Change the bot presence to another from from config'''
-    await bot.get
+
+    # Get the current status of the bot so we can omit that from the choices.
+    current_game = ([single_member.game.name for single_member in bot.get_all_members() if single_member.id == bot.user.id])[0]
 
     # Check to see if we have multiple options to choose from
-    if bot_config.presence.count > 1:
+    if len(bot_config.presence) > 1:
         # Same one could possibly show.
-        await bot.change_presence(game=discord.Game(name=bot_config.randompresence()))
+        await bot.change_presence(game=discord.Game(name=bot_config.randompresence(current_game)))
     else:
-        await bot.say('I only have one presence.')
+        await bot.say('I only have one presence.')  
 
 @bot.command(pass_context=True)
 async def getlisting(context, id):
@@ -155,5 +157,4 @@ async def getlisting(context, id):
 print('Discord.py version:', discord.__version__)
 
 bot.run(bot_config.token)
-print(dir(bot))
 bot.close()

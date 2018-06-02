@@ -90,9 +90,9 @@ class BotConfig(object):
         if self.presence.count == 0:
             self.presence.append(default_presence)
 
-    def randompresence(self):
+    def randompresence(self, *args):
         # Get a random presence from list
-        return choice(self.presence)
+        return choice([option for option in self.presence if option not in args])
 
     def __str__(self):
         return 'Command Prefix: {} \nSearch: {} \nToken: {} \nPresence: {}'.format(
