@@ -13,6 +13,12 @@ class SearchURL(Base):
     url = Column(String)
     inserted = Column(DateTime)
 
+    def __str__(self):
+        return ("urlid:" + str(self.urlid) + "\n"
+                "url:" + self.url + "\n"
+                "inserted:" + str(self.inserted)
+                )
+
 class Listing(Base):
     __tablename__ = 'listings'
 
@@ -31,6 +37,24 @@ class Listing(Base):
     new = Column(Boolean)
     changes = Column(String)
     searchurl = relationship('SearchURL')
+
+    def __str__(self):
+        return ('id: ' + str(self.id) + "\n" +
+                'url: ' + self.url + "\n" +
+                'price: ' + self.price + "\n" +
+                'title: ' + self.title + "\n" +
+                'distance: ' + self.distance + "\n" +
+                'location: ' + self.location + "\n" +
+                'posted: ' + str(self.posted) + "\n" +
+                'shortdescription: ' + self.shortdescription + "\n" +
+                'lastsearched: ' + str(self.lastsearched) + "\n" +
+                'searchurlid: ' + str(self.searchurlid) + "\n" +
+                'imageurl: ' + self.imageurl + "\n" +
+                'discovered: ' + str(self.discovered) + "\n" +
+                'new: ' + str(self.new) + "\n" +
+                'changes: ' + self.changes + "\n" +
+                'searchurl: ' + str(self.searchurl)
+                )
 
     def changes_to_string(self):
         '''Take the json string changes and convert it to formatted string for reading in embed'''
@@ -57,9 +81,11 @@ class Listing(Base):
         else:
             listing_description = self.shortdescription
 
+        print(str(self))
+
         listing_as_embed = Embed(
             title=self.title, description=listing_description, color=Colour(randint(0, 16777215)),
-            url=self.url)
+            url=f'https://www.kijiji.ca/{self.url}')
         listing_as_embed.add_field(name='Location', value=self.location, inline=True)
         listing_as_embed.add_field(name='Price', value=self.price, inline=True)
         listing_as_embed.set_image(url=self.imageurl)
@@ -68,3 +94,4 @@ class Listing(Base):
             listing_as_embed.set_thumbnail(url=kwargs.get('thumbnail'))
 
         return listing_as_embed
+
