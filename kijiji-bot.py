@@ -100,6 +100,8 @@ else:
 
 bot = Bot(command_prefix=bot_config.command_prefix)
 
+print(dir(bot_config.search[0].posting_channel))
+
 engine = create_engine(bot_config.db_url)
 session = Session(bind=engine)
 Base.metadata.create_all(engine)
@@ -138,7 +140,7 @@ async def newpresence():
         # Same one could possibly show.
         await bot.change_presence(game=discord.Game(name=bot_config.randompresence(current_game)))
     else:
-        await bot.say('I only have one presence.')  
+        await bot.say('I only have one presence.')
 
 @bot.command(pass_context=True)
 async def getlisting(context, id):
@@ -148,10 +150,12 @@ async def getlisting(context, id):
     except NoResultFound as e:
         print(e)
         await bot.say("No listings available")
-        # Deal with that as well
+        # Deal with that as wells
 
     if(single_listing):
+        # print("channel:", bot_config.search[0].posting_channel.name, bot_config.search[0].posting_channel.id)
         await bot.send_message(destination=bot_config.search[0].posting_channel, embed=single_listing.to_embed())
+
 
 # Run the bot with the supplied token
 print('Discord.py version:', discord.__version__)
