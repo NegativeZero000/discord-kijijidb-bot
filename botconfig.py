@@ -1,6 +1,7 @@
 from json import load
 from random import choice
 from validators import url
+from discord import Object
 
 class SearchConfig(object):
     '''Coordinates the pulling of listings from the database and posting them'''
@@ -23,7 +24,7 @@ class SearchConfig(object):
             raise ValueError('Parameter "search_indecies" is required')
 
         if 'posting_channel' in dictionary.keys():
-            self.posting_channel = dictionary['posting_channel']
+            self.posting_channel = Object(id=dictionary['posting_channel'])
         else:
             raise ValueError('Parameter "posting_channel" is required')
 
