@@ -44,14 +44,13 @@ class SearchConfig(object):
 
 class BotConfig(object):
     ''' Contains all import configuration used for the bot'''
-    __slots__ = 'command_prefix', 'token', 'search', 'presence', 'db_url'
+    __slots__ = 'command_prefix', 'token', 'search', 'presence', 'db_url', 'posting_limit'
 
     def __init__(self, path):
         '''Using the file path of the config file import and scrub settings '''
 
         # Set bot defaults where applicable
-        default_command_prefix = "#"
-        default_presence = 'hard to get'
+        defaults = dict(command_prefix='#', presence='hard to get', posting_limit=3)
 
         # Load from file
         with open(path) as json_file:
@@ -62,6 +61,12 @@ class BotConfig(object):
             self.token = config_options['token']
         else:
             raise ValueError('Parameter "token" is required.')
+
+        # Check for the optional posting_limit
+        if 'posting_limit' in config_options.keys():
+            self.posting_limit = config_options['posting_limit']
+        else:
+            self.posting_limit = defaults['posting_limit']
 
         # Get the required database url
         if 'db_url' in config_options.keys():
@@ -81,7 +86,7 @@ class BotConfig(object):
         if "command_prefix" in config_options.keys():
             self.command_prefix = config_options["command_prefix"]
         else:
-            self.command_prefix = default_command_prefix
+            self.command_prefix = defaults['command_prefix']
 
         # Load presences if any. Append default just in case
         self.presence = []
@@ -89,7 +94,7 @@ class BotConfig(object):
             self.presence = config_options['presence']
 
         if self.presence.count == 0:
-            self.presence.append(default_presence)
+            self.presence.append(defaults['presence'])
 
     def randompresence(self, *args):
         # Get a random presence from list
