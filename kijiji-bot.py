@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
 # Miscellaneous imports
+import asyncio
 import logging
 import os
 from pathlib import Path
@@ -102,7 +103,7 @@ bot = Bot(command_prefix=bot_config.command_prefix)
 
 print(dir(bot_config.search[0].posting_channel))
 
-engine = create_engine(bot_config.db_url)
+engine = create_engine(bot_config.db_url, pool_recycle=3600)
 session = Session(bind=engine)
 Base.metadata.create_all(engine)
 
@@ -142,11 +143,11 @@ async def newpresence():
     else:
         await bot.say('I only have one presence.')
 
-@bot.command(pass_context=True)
+@bot.command(pass_context=True, aliases=['gl'])
 async def getlisting(context, id):
     '''Get a listing from the database matching the id passed'''
     try:
-        single_listing = session.query(Listing).first()
+        single_listing = session.query(Listing).filter(Listing.id == id).first()
     except NoResultFound as e:
         print(e)
         await bot.say("No listings available")
@@ -156,9 +157,37 @@ async def getlisting(context, id):
         # print("channel:", bot_config.search[0].posting_channel.name, bot_config.search[0].posting_channel.id)
         await bot.send_message(destination=bot_config.search[0].posting_channel, embed=single_listing.to_embed())
 
+async def listing_watcher():
+    ''' This is the looping task that will scan the database for new listings and post them to their appropriate channel'''
+    await bot.wait_until_ready()
+
+    while not bot.is_closed:
+        # Process each search individually
+        for single_search in bot_config.search:
+            # Attempt to get new listings up to a certain number
+            try:
+                new_listings = session.query(Listing).filter(Listing.new == 1).limit(bot_config.posting_limit)
+            except NoResultFound as e:
+                await bot.say("No listings available")
+
+            if(new_listings):
+                for new_listing in new_listings:
+                    await bot.send_message(destination=single_search.posting_channel, embed=new_listing.to_embed())
+                    # Flag the listing as old
+                    new_listing.new = 0
+
+                session.commit()
+
+            # Breather between search configs
+            await asyncio.sleep(1)
+
+        # task runs every 60 seconds
+        await asyncio.sleep(60)
 
 # Run the bot with the supplied token
 print('Discord.py version:', discord.__version__)
 
+# Start the database monitoring task
+bot.loop.create_task(listing_watcher())
 bot.run(bot_config.token)
 bot.close()
