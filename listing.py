@@ -81,14 +81,14 @@ class Listing(Base):
         else:
             listing_description = self.shortdescription
 
-        print(str(self))
-
         listing_as_embed = Embed(
             title=self.title, description=listing_description, color=Colour(randint(0, 16777215)),
             url=f'https://www.kijiji.ca/{self.url}')
         listing_as_embed.add_field(name='Location', value=self.location, inline=True)
         listing_as_embed.add_field(name='Price', value=self.price, inline=True)
-        listing_as_embed.set_image(url=self.imageurl)
+        # This url might contain a tilde which Discord will have an issue with
+        # Replace the tilde with a URL encoded version
+        listing_as_embed.set_image(url=self.imageurl.replace('~', '%7E'))
         listing_as_embed.set_footer(text='Listed: {}'.format(self.posted))
         if 'thumbnail' in kwargs:
             listing_as_embed.set_thumbnail(url=kwargs.get('thumbnail'))
