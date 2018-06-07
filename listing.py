@@ -61,7 +61,7 @@ class Listing(Base):
         changes_markdown = ''
         if(self.changes):
             for change in loads(self.changes):
-                changes_markdown += f'__{change["Property"]}:__ _{change["Findings"]}_\n'
+                changes_markdown += f'__{str(change["Property"])}:__ _{str(change["Findings"])}_\n'
         return changes_markdown
 
     def to_embed(self, **kwargs):
@@ -94,4 +94,3 @@ class Listing(Base):
             listing_as_embed.set_thumbnail(url=kwargs.get('thumbnail'))
 
         return listing_as_embed
-
