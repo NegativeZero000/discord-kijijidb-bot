@@ -14,9 +14,9 @@ class SearchURL(Base):
     inserted = Column(DateTime)
 
     def __str__(self):
-        return ("urlid:" + str(self.urlid) + "\n"
-                "url:" + self.url + "\n"
-                "inserted:" + str(self.inserted)
+        return ('urlid:' + str(self.urlid) + '\n'
+                'url:' + self.url + '\n'
+                'inserted:' + str(self.inserted)
                 )
 
 class Listing(Base):
