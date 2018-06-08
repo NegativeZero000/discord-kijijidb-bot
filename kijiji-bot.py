@@ -109,12 +109,12 @@ async def ping(context, *args):
     print("{} has pinged".format(context.message.author))
 
 @bot.command(pass_context=True)
+@commands.has_role('admin')
 async def shutdown(context):
     '''Command to shut the bot down'''
     # Remove the message that triggered this command
     await bot.delete_message(context.message)
     await bot.logout()
-
 
 @bot.command(pass_context=True)
 async def status(context):
