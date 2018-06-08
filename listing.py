@@ -61,7 +61,7 @@ class Listing(Base):
         changes_markdown = ''
         if(self.changes):
             for change in loads(self.changes):
-                changes_markdown += f'__{str(change["Property"])}:__ _{str(change["Findings"])}_\n'
+                changes_markdown += f'_{str(change["Property"])}:_ {str(change["Findings"])}\n'
         return changes_markdown
 
     def to_embed(self, **kwargs):
@@ -75,7 +75,7 @@ class Listing(Base):
             )
             if self.changes:
                 listing_description += (
-                    f'The following differences from the previous listing were identified\n'
+                    f'**The following differences from the previous listing were identified**\n'
                     f'{self.changes_to_string()}'
                 )
         else:
