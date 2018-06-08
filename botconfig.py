@@ -44,7 +44,7 @@ class SearchConfig(object):
 
 class BotConfig(object):
     ''' Contains all import configuration used for the bot'''
-    __slots__ = 'command_prefix', 'token', 'search', 'presence', 'db_url', 'posting_limit'
+    __slots__ = 'command_prefix', 'token', 'search', 'presence', 'db_url', 'posting_limit', 'last_searched'
 
     def __init__(self, path):
         '''Using the file path of the config file import and scrub settings '''

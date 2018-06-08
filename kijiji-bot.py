@@ -11,6 +11,7 @@ import logging
 import os
 from pathlib import Path
 from random import randint
+from datetime import datetime
 # Database
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -107,13 +108,32 @@ async def ping(context, *args):
     await bot.delete_message(context.message)
     print("{} has pinged".format(context.message.author))
 
-@bot.command()
-async def shutdown():
+@bot.command(pass_context=True)
+async def shutdown(context):
     '''Command to shut the bot down'''
+    # Remove the message that triggered this command
+    await bot.delete_message(context.message)
     await bot.logout()
 
-@bot.command(aliases=['np'])
-async def newpresence():
+
+@bot.command(pass_context=True)
+async def status(context):
+    ''' Reports pertinent bot statistics as an embed'''
+    status_embed = discord.Embed(
+        title="Kijiji Bot Status",
+        description="Quick snapshot of what is going on with the bot",
+        color=discord.Colour(randint(0, 16777215))
+    ).add_field(
+        name='Last DB Check',
+        value=bot_config.last_searched
+    )
+
+    await bot.send_message(destination=context.message.channel, embed=status_embed)
+    # Remove the message that triggered this command
+    await bot.delete_message(context.message)
+
+@bot.command(pass_context=True, aliases=['np'])
+async def newpresence(context):
     '''Change the bot presence to another from from config'''
 
     # Get the current status of the bot so we can omit that from the choices.
@@ -125,6 +145,9 @@ async def newpresence():
         await bot.change_presence(game=discord.Game(name=bot_config.randompresence(current_game)))
     else:
         await bot.say('I only have one presence.')
+
+    # Remove the message that triggered this command
+    await bot.delete_message(context.message)
 
 @bot.command(pass_context=True, aliases=['gl'])
 async def getlisting(context, id):
@@ -139,6 +162,10 @@ async def getlisting(context, id):
     if(single_listing):
         # print("channel:", bot_config.search[0].posting_channel.name, bot_config.search[0].posting_channel.id)
         await bot.send_message(destination=bot_config.search[0].posting_channel, embed=single_listing.to_embed())
+
+    # Remove the message that triggered this command
+    await bot.delete_message(context.message)
+
 
 async def listing_watcher():
     ''' This is the looping task that will scan the database for new listings and post them to their appropriate channel'''
@@ -160,6 +187,9 @@ async def listing_watcher():
                     new_listing.new = 0
 
                 session.commit()
+
+            # Update the last search value in config. Used in status command
+            bot_config.last_searched = datetime.now()
 
             # Breather between search configs
             await asyncio.sleep(1)
