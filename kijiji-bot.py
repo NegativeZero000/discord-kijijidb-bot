@@ -13,7 +13,7 @@ from pathlib import Path
 from random import randint
 from datetime import datetime
 # Database
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 # Custom Class
@@ -83,10 +83,10 @@ if(config_file_path.is_file()):
 else:
     print("The configuration file {} does not exist".format(config_file_path))
 
+# Initialize the bot
 bot = Bot(command_prefix=bot_config.command_prefix)
 
-print(dir(bot_config.search[0].posting_channel))
-
+# Prep SQLAlchemy
 engine = create_engine(bot_config.db_url, pool_recycle=3600)
 session = Session(bind=engine)
 Base.metadata.create_all(engine)
@@ -176,7 +176,7 @@ async def listing_watcher():
         for single_search in bot_config.search:
             # Attempt to get new listings up to a certain number
             try:
-                new_listings = session.query(Listing).filter(Listing.new == 1).limit(bot_config.posting_limit)
+                new_listings = session.query(Listing).filter(and_(Listing.new == 1, Listing.searchurlid.in_(single_search.search_indecies))).limit(bot_config.posting_limit)
             except NoResultFound as e:
                 await bot.say("No listings available")
 
