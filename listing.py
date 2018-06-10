@@ -83,7 +83,7 @@ class Listing(Base):
 
         listing_as_embed = Embed(
             title=self.title, description=listing_description, color=Colour(randint(0, 16777215)),
-            url=f'https://www.kijiji.ca/{self.url}')
+            url=f'https://www.kijiji.ca{self.url}')
         listing_as_embed.add_field(name='Location', value=self.location, inline=True)
         listing_as_embed.add_field(name='Price', value=self.price, inline=True)
         # This url might contain a tilde which Discord will have an issue with
