@@ -177,16 +177,15 @@ async def listing_watcher():
             # Attempt to get new listings up to a certain number
             try:
                 new_listings = session.query(Listing).filter(and_(Listing.new == 1, Listing.searchurlid.in_(single_search.search_indecies))).limit(bot_config.posting_limit)
-            except NoResultFound as e:
-                await bot.say("No listings available")
 
-            if(new_listings):
                 for new_listing in new_listings:
                     await bot.send_message(destination=single_search.posting_channel, embed=new_listing.to_embed())
                     # Flag the listing as old
                     new_listing.new = 0
 
                 session.commit()
+            except NoResultFound as e:
+                await bot.say("No listings available")
 
             # Update the last search value in config. Used in status command
             bot_config.last_searched = datetime.now()
