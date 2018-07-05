@@ -119,13 +119,18 @@ async def shutdown(context):
 @bot.command(pass_context=True)
 async def status(context):
     ''' Reports pertinent bot statistics as an embed'''
+    time_format = '%Y-%m-%d %H:%M:%S'
+
     status_embed = discord.Embed(
         title="Kijiji Bot Status",
         description="Quick snapshot of what is going on with the bot",
         color=discord.Colour(randint(0, 16777215))
     ).add_field(
         name='Last DB Check',
-        value=bot_config.last_searched
+        value=bot_config.last_searched.strftime(time_format)
+    ).add_field(
+        name='Running Since',
+        value=bot_config.when_started.strftime(time_format)
     )
 
     await bot.send_message(destination=context.message.channel, embed=status_embed)

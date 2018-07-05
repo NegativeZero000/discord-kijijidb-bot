@@ -1,5 +1,6 @@
 from json import load
 from random import choice
+from datetime import datetime
 from validators import url
 from discord import Object
 
@@ -43,8 +44,8 @@ class SearchConfig(object):
 
 
 class BotConfig(object):
-    ''' Contains all import configuration used for the bot'''
-    __slots__ = 'command_prefix', 'token', 'search', 'presence', 'db_url', 'posting_limit', 'last_searched'
+    ''' Contains all import and running configuration used for the bot'''
+    __slots__ = 'command_prefix', 'token', 'search', 'presence', 'db_url', 'posting_limit', 'last_searched', 'when_started'
 
     def __init__(self, path):
         '''Using the file path of the config file import and scrub settings '''
@@ -95,6 +96,9 @@ class BotConfig(object):
 
         if self.presence.count == 0:
             self.presence.append(defaults['presence'])
+
+        # Use the current time as when the bot was initialized
+        self.when_started = datetime.now()
 
     def randompresence(self, *args):
         # Get a random presence from list
