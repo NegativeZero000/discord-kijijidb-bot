@@ -55,6 +55,7 @@ class BotConfig(object):
         self.posting_limit = posting_limit
         self.db_url = db_url
 
+        self.search = []
         for search_config in search:
             self.search.append(SearchConfig(dictionary=search_config))
 
