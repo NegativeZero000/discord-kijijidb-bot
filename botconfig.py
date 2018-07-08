@@ -54,12 +54,23 @@ class BotConfig(object):
         self.token = token
         self.posting_limit = posting_limit
         self.db_url = db_url
-        self.search = search
+
+        for search_config in search:
+            self.search.append(SearchConfig(dictionary=search_config))
+
         self.command_prefix = command_prefix
         self.presence = presence
 
         # Use the current time as when the bot was initialized
         self.when_started = datetime.now()
+
+    @classmethod
+    def from_json_config(cls, path):
+        '''Using the file path of the config file import and scrub settings'''
+
+        with open(path) as json_file:
+            config_options = load(json_file)
+            return cls(**config_options)
 
     def randompresence(self, *args):
         # Get a random presence from list
