@@ -142,7 +142,9 @@ async def newpresence(context):
     '''Change the bot presence to another from from config'''
 
     # Get the current status of the bot so we can omit that from the choices.
-    current_game = ([single_member.game.name for single_member in bot.get_all_members() if single_member.id == bot.user.id])[0]
+    current_game = next(single_member.game.name
+                        for single_member in bot.get_all_members()
+                        if single_member.id == bot.user.id)
 
     # Check to see if we have multiple options to choose from
     if len(bot_config.presence) > 1:
