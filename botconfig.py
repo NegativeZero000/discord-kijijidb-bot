@@ -47,55 +47,16 @@ class BotConfig(object):
     ''' Contains all import and running configuration used for the bot'''
     __slots__ = 'command_prefix', 'token', 'search', 'presence', 'db_url', 'posting_limit', 'last_searched', 'when_started'
 
-    def __init__(self, path):
-        '''Using the file path of the config file import and scrub settings '''
+    def __init__(self, *, token, db_url, search, command_prefix='#',
+                 presence=['hard to get'], posting_limit=3):
+        '''Set and scrub settings'''
 
-        # Set bot defaults where applicable
-        defaults = dict(command_prefix='#', presence='hard to get', posting_limit=3)
-
-        # Load from file
-        with open(path) as json_file:
-            config_options = load(json_file)
-
-        # Check for the required token property
-        if 'token' in config_options.keys():
-            self.token = config_options['token']
-        else:
-            raise ValueError('Parameter "token" is required.')
-
-        # Check for the optional posting_limit
-        if 'posting_limit' in config_options.keys():
-            self.posting_limit = config_options['posting_limit']
-        else:
-            self.posting_limit = defaults['posting_limit']
-
-        # Get the required database url
-        if 'db_url' in config_options.keys():
-            self.db_url = config_options['db_url']
-        else:
-            raise ValueError('Parameter "db_url" is required.')
-
-        # Check for the required search object property
-        self.search = []
-        if 'search' in config_options.keys():
-            for search_config in config_options['search']:
-                self.search.append(SearchConfig(dictionary=search_config))
-        else:
-            raise ValueError('At least one "search" is required.')
-
-        # Set the command prefix from config if possible
-        if "command_prefix" in config_options.keys():
-            self.command_prefix = config_options["command_prefix"]
-        else:
-            self.command_prefix = defaults['command_prefix']
-
-        # Load presences if any. Append default just in case
-        self.presence = []
-        if 'presence' in config_options.keys():
-            self.presence = config_options['presence']
-
-        if self.presence.count == 0:
-            self.presence.append(defaults['presence'])
+        self.token = token
+        self.posting_limit = posting_limit
+        self.db_url = db_url
+        self.search = search
+        self.command_prefix = command_prefix
+        self.presence = presence
 
         # Use the current time as when the bot was initialized
         self.when_started = datetime.now()
