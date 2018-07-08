@@ -78,10 +78,10 @@ if(config_file_path.is_file()):
     print("Configuration found in: {}".format(config_file_path))
 
     # Initiate the bot config object from file
-    bot_config = BotConfig(config_file_path)
+    bot_config = BotConfig.from_json_config(config_file_path)
     print(str(bot_config))
 else:
-    print("The configuration file {} does not exist".format(config_file_path))
+    print("The configuration file {} does not exist".format(path=config_file_path))
 
 # Initialize the bot
 bot = Bot(command_prefix=bot_config.command_prefix)
