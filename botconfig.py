@@ -8,32 +8,20 @@ class SearchConfig(object):
     '''Coordinates the pulling of listings from the database and posting them'''
     __slots__ = 'id', 'search_indecies', 'posting_channel', 'thumbnail'
 
-    def __init__(self, dictionary):
+    def __init__(self, *, id, search_indecies, posting_channel, thumbnail):
+        '''Set and scrub search configuration'''
 
-        if 'id' in dictionary.keys():
-            self.id = dictionary['id']
+        self.id = id
+        self.search_indecies = [item for item in search_indecies if isinstance(item, int)]
+        self.posting_channel = Object(id=posting_channel)
+        if url(thumbnail):
+            self.thumbnail = thumbnail
         else:
-            raise ValueError('Parameter "id" is required')
+            print(f"Thumbnail for {self.id} failed url validation")
 
-        if 'search_indecies' in dictionary.keys():
-            self.search_indecies = [item for item in dictionary['search_indecies'] if isinstance(item, int)]
-
-            # Verify that search contains at least one item
-            if self.search_indecies.count == 0:
-                raise ValueError('Parameter "search" contains no integers')
-        else:
-            raise ValueError('Parameter "search_indecies" is required')
-
-        if 'posting_channel' in dictionary.keys():
-            self.posting_channel = Object(id=dictionary['posting_channel'])
-        else:
-            raise ValueError('Parameter "posting_channel" is required')
-
-        if 'thumbnail' in dictionary.keys():
-            if url(dictionary['thumbnail']):
-                self.thumbnail = dictionary['thumbnail']
-            else:
-                print(f"Thumbnail for {self.id} failed url validation")
+    @classmethod
+    def from_json_config(cls, json_config):
+        return cls(**json_config)
 
     def __str__(self):
         return 'Id: {}\nSearch Indecies: {}\nPosting Channel: {}'.format(
@@ -57,7 +45,7 @@ class BotConfig(object):
 
         self.search = []
         for search_config in search:
-            self.search.append(SearchConfig(dictionary=search_config))
+            self.search.append(SearchConfig(**search_config))
 
         self.command_prefix = command_prefix
         self.presence = presence
