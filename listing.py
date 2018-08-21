@@ -64,7 +64,7 @@ class Listing(Base):
                 changes_markdown += f'_{str(change["Property"])}:_ {str(change["Findings"])}\n'
         return changes_markdown
 
-    def to_embed(self, **kwargs):
+    def to_embed(self, thumbnail=''):
         '''Created a discord embed from this instances properties'''
         # If this listing has been discovered before then it is possible there are changes
         # that should be shown in the message as well.
@@ -90,7 +90,7 @@ class Listing(Base):
         # Replace the tilde with a URL encoded version
         listing_as_embed.set_image(url=self.imageurl.replace('~', '%7E'))
         listing_as_embed.set_footer(text='Listed: {}'.format(self.posted))
-        if 'thumbnail' in kwargs:
-            listing_as_embed.set_thumbnail(url=kwargs.get('thumbnail'))
+        if thumbnail != '':
+            listing_as_embed.set_thumbnail(url=thumbnail)
 
         return listing_as_embed

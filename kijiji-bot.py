@@ -181,7 +181,7 @@ async def listing_watcher():
                 new_listings = session.query(Listing).filter(and_(Listing.new == 1, Listing.searchurlid.in_(single_search.search_indecies))).limit(bot_config.posting_limit)
 
                 for new_listing in new_listings:
-                    await bot.send_message(destination=single_search.posting_channel, embed=new_listing.to_embed())
+                    await bot.send_message(destination=single_search.posting_channel, embed=new_listing.to_embed(single_search.thumbnail))
                     # Flag the listing as old
                     new_listing.new = 0
 
