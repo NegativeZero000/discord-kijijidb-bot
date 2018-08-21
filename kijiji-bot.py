@@ -161,16 +161,13 @@ async def getlisting(context, id):
     '''Get a listing from the database matching the id passed'''
     try:
         single_listing = session.query(Listing).filter(Listing.id == id).first()
-
-        # print("channel:", bot_config.search[0].posting_channel.name, bot_config.search[0].posting_channel.id)
+        # Print the found listing
         await bot.send_message(destination=bot_config.search[0].posting_channel, embed=single_listing.to_embed())
-
-        # Remove the message that triggered this command
-        await bot.delete_message(context.message)
     except NoResultFound as e:
         print(e)
-        await bot.say("No listings available")
-        # Deal with that as wells
+        await bot.say(f"No listing available matching '{id}'")
+    # Remove the message that triggered this command
+    await bot.delete_message(context.message)
 
 async def listing_watcher():
     ''' This is the looping task that will scan the database for new listings and post them to their appropriate channel'''
