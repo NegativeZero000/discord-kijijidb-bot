@@ -94,18 +94,18 @@ Base.metadata.create_all(engine)
 @bot.event
 async def on_ready():
     '''Event for when the bot is ready to start working'''
-    print("Ready when you are")
-    print("I am running on " + bot.user.name)
-    print("With the id " + bot.user.id)
-    await bot.change_presence(game=discord.Game(name=bot_config.randompresence()))
+    print("[on_ready]: Ready when you are")
+    print("[on_ready]: I am running on " + bot.user.name)
+    print("[on_ready]: With the id " + str(bot.user.id))
+    await bot.change_presence(activity=discord.Game(name=bot_config.randompresence()))
 
 @bot.command(pass_context=True)
 async def ping(context, *args):
     '''Verifcation that the bot is running and working.'''
-    await bot.say(":eight_spoked_asterisk: I'm here {}".format(
+    await context.send(":eight_spoked_asterisk: I'm here {}".format(
         context.message.author))
     # Remove the message that triggered this command
-    await bot.delete_message(context.message)
+    await context.message.delete()
     print("{} has pinged".format(context.message.author))
 
 @bot.command(pass_context=True)
@@ -113,10 +113,10 @@ async def ping(context, *args):
 async def shutdown(context):
     '''Command to shut the bot down'''
     # Remove the message that triggered this command
-    await bot.delete_message(context.message)
+    await context.message.delete()
     await bot.logout()
 
-@bot.command(pass_context=True)
+@bot.command()
 async def status(context):
     ''' Reports pertinent bot statistics as an embed'''
     time_format = '%Y-%m-%d %H:%M:%S'
@@ -127,15 +127,15 @@ async def status(context):
         color=discord.Colour(randint(0, 16777215))
     ).add_field(
         name='Last DB Check',
-        value=bot_config.last_searched.strftime(time_format)
+        value=bot_config.last_searched.strftime(time_format) if hasattr(bot_config, "last_searched") else "First search not completed."
     ).add_field(
         name='Running Since',
         value=bot_config.when_started.strftime(time_format)
     )
 
-    await bot.send_message(destination=context.message.channel, embed=status_embed)
+    await context.send(embed=status_embed)
     # Remove the message that triggered this command
-    await bot.delete_message(context.message)
+    await context.message.delete()
 
 @bot.command(pass_context=True, aliases=['np'])
 async def newpresence(context):
@@ -149,12 +149,12 @@ async def newpresence(context):
     # Check to see if we have multiple options to choose from
     if len(bot_config.presence) > 1:
         # Same one could possibly show.
-        await bot.change_presence(game=discord.Game(name=bot_config.randompresence(current_game)))
+        await bot.change_presence(activity=discord.Game(name=bot_config.randompresence(current_game)))
     else:
-        await bot.say('I only have one presence.')
+        await context.send('I only have one presence.')
 
     # Remove the message that triggered this command
-    await bot.delete_message(context.message)
+    await context.message.delete()
 
 @bot.command(pass_context=True, aliases=['gl'])
 async def getlisting(context, id):
@@ -165,35 +165,55 @@ async def getlisting(context, id):
         await bot.send_message(destination=bot_config.search[0].posting_channel, embed=single_listing.to_embed())
     except NoResultFound as e:
         print(e)
-        await bot.say(f"No listing available matching '{id}'")
+        await context.send(f"No listing available matching '{id}'")
     # Remove the message that triggered this command
-    await bot.delete_message(context.message)
+    await context.message.delete()
+
+@bot.command()
+async def getchannels(context):
+    '''Show all the channels the bot has access to'''
+    for channel in bot.get_all_channels():
+        await context.send(embed=discord.Embed(
+            title="Channel: " + channel.name,
+            description="Quick snapshot of what is going on with the bot",
+            color=discord.Colour(randint(0, 16777215))
+        ).add_field(
+            name='ID',
+            value=channel.id
+        ))
 
 async def listing_watcher():
     ''' This is the looping task that will scan the database for new listings and post them to their appropriate channel'''
     await bot.wait_until_ready()
 
-    while not bot.is_closed:
+    print("[listing_watcher]: Starting the watcher")
+    print("[listing_watcher]: Is the bot closed?: " + str(bot.is_closed()))
+    while not bot.is_closed():
         # Process each search individually
+        print("[listing_watcher]: Checking the searches")
         for single_search in bot_config.search:
             # Attempt to get new listings up to a certain number
+            posting_channel = bot.get_channel(single_search.posting_channel)
+            print("[listing_watcher]: " + str(single_search.posting_channel))
+            print("[listing_watcher]: " + str(posting_channel))
+
             try:
                 new_listings = session.query(Listing).filter(and_(Listing.new == 1, Listing.searchurlid.in_(single_search.search_indecies))).limit(bot_config.posting_limit)
 
                 for new_listing in new_listings:
-                    await bot.send_message(destination=single_search.posting_channel, embed=new_listing.to_embed(single_search.thumbnail))
+                    await posting_channel.send(embed=new_listing.to_embed(single_search.thumbnail))
                     # Flag the listing as old
                     new_listing.new = 0
 
                 session.commit()
-            except NoResultFound as e:
-                await bot.say("No listings available")
+            except NoResultFound:
+                await posting_channel.send(content="No listings available")
 
             # Update the last search value in config. Used in status command
             bot_config.last_searched = datetime.now()
 
             # Breather between search configs
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)
 
         # task runs every 60 seconds
         await asyncio.sleep(60)
@@ -202,6 +222,6 @@ async def listing_watcher():
 print('Discord.py version:', discord.__version__)
 
 # Start the database monitoring task
-bot.loop.create_task(listing_watcher())
+bot.bg_task = bot.loop.create_task(listing_watcher())
 bot.run(bot_config.token)
 bot.close()
