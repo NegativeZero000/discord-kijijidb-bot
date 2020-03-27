@@ -2,7 +2,6 @@ from json import load
 from random import choice
 from datetime import datetime
 from validators import url
-from discord import Object
 
 class SearchConfig(object):
     '''Coordinates the pulling of listings from the database and posting them'''
@@ -13,7 +12,7 @@ class SearchConfig(object):
 
         self.id = id
         self.search_indecies = [item for item in search_indecies if isinstance(item, int)]
-        self.posting_channel = Object(id=posting_channel)
+        self.posting_channel = posting_channel
         if url(thumbnail):
             self.thumbnail = thumbnail
         else:
