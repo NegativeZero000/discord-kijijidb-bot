@@ -142,14 +142,15 @@ async def newpresence(context):
     '''Change the bot presence to another from from config'''
 
     # Get the current status of the bot so we can omit that from the choices.
-    current_game = next(single_member.game.name
-                        for single_member in bot.get_all_members()
-                        if single_member.id == bot.user.id)
+    activities = next(single_member.activities
+                      for single_member in bot.get_all_members()
+                      if single_member.id == bot.user.id)
 
+    # Activites is a tuple of the current activity and spotify. First element should contain a <game>
     # Check to see if we have multiple options to choose from
     if len(bot_config.presence) > 1:
         # Same one could possibly show.
-        await bot.change_presence(activity=discord.Game(name=bot_config.randompresence(current_game)))
+        await bot.change_presence(activity=discord.Game(name=bot_config.randompresence(activities[0].name)))
     else:
         await context.send('I only have one presence.')
 
@@ -162,7 +163,7 @@ async def getlisting(context, id):
     try:
         single_listing = session.query(Listing).filter(Listing.id == id).first()
         # Print the found listing
-        await bot.send_message(destination=bot_config.search[0].posting_channel, embed=single_listing.to_embed())
+        await context.send(embed=single_listing.to_embed())
     except NoResultFound as e:
         print(e)
         await context.send(f"No listing available matching '{id}'")
@@ -181,6 +182,8 @@ async def getchannels(context):
             name='ID',
             value=channel.id
         ))
+    # Remove the message that triggered this command
+    await context.message.delete()
 
 async def listing_watcher():
     ''' This is the looping task that will scan the database for new listings and post them to their appropriate channel'''
@@ -190,12 +193,12 @@ async def listing_watcher():
     print("[listing_watcher]: Is the bot closed?: " + str(bot.is_closed()))
     while not bot.is_closed():
         # Process each search individually
-        print("[listing_watcher]: Checking the searches")
+        # print("[listing_watcher]: Checking the searches")
         for single_search in bot_config.search:
             # Attempt to get new listings up to a certain number
             posting_channel = bot.get_channel(single_search.posting_channel)
-            print("[listing_watcher]: " + str(single_search.posting_channel))
-            print("[listing_watcher]: " + str(posting_channel))
+            # print("[listing_watcher]: " + str(single_search.posting_channel))
+            # print("[listing_watcher]: " + str(posting_channel))
 
             try:
                 new_listings = session.query(Listing).filter(and_(Listing.new == 1, Listing.searchurlid.in_(single_search.search_indecies))).limit(bot_config.posting_limit)
