@@ -17,7 +17,7 @@ from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 # Custom Class
-from listing import Listing, Base
+from listing import Listing, Base, SearchURL
 from botconfig import BotConfig
 
 
@@ -116,7 +116,37 @@ async def shutdown(context):
     await context.message.delete()
     await bot.logout()
 
-@bot.command()
+@bot.command(aliases=['sc'])
+@commands.has_role('admin')
+async def showsearchconfig(context):
+    '''Display the current bot search configuration'''
+    await context.send(f"Search configs as defined by: *{config_file_name}*")
+
+    for search_config in bot_config.search:
+        # Create an embed for each config
+        config_embed = discord.Embed(
+            title=f"Kijiji Bot Search Config: {search_config.id}",
+            color=discord.Colour(randint(0, 16777215)),
+        ).add_field(
+            name='Channel',
+            value=next(channel.name for channel in bot.get_all_channels() if channel.id == search_config.posting_channel),
+            inline=False
+        )
+
+        for search_index in search_config.search_indecies:
+            search_url = session.query(SearchURL).filter(SearchURL.urlid == search_index).first()
+            config_embed.add_field(
+                name=f"Search Index: {search_index}",
+                value=search_url.url,
+                inline=False
+            )
+        config_embed.set_image(url=search_config.thumbnail)
+        await context.send(embed=config_embed)
+
+    # Remove the message that triggered this command
+    await context.message.delete()
+
+@bot.command(aliases=['s'])
 async def status(context):
     ''' Reports pertinent bot statistics as an embed'''
     time_format = '%Y-%m-%d %H:%M:%S'
@@ -137,7 +167,7 @@ async def status(context):
     # Remove the message that triggered this command
     await context.message.delete()
 
-@bot.command(pass_context=True, aliases=['np'])
+@bot.command(aliases=['np'])
 async def newpresence(context):
     '''Change the bot presence to another from from config'''
 
@@ -157,20 +187,24 @@ async def newpresence(context):
     # Remove the message that triggered this command
     await context.message.delete()
 
-@bot.command(pass_context=True, aliases=['gl'])
+@bot.command(aliases=['gl'])
 async def getlisting(context, id):
     '''Get a listing from the database matching the id passed'''
     try:
         single_listing = session.query(Listing).filter(Listing.id == id).first()
         # Print the found listing
-        await context.send(embed=single_listing.to_embed())
+        if(single_listing is not None):
+            await context.send(embed=single_listing.to_embed())
+        else:
+            await context.send(f"No listing available matching '{id}'")
+
     except NoResultFound as e:
         print(e)
         await context.send(f"No listing available matching '{id}'")
     # Remove the message that triggered this command
     await context.message.delete()
 
-@bot.command()
+@bot.command(aliases=['gc'])
 async def getchannels(context):
     '''Show all the channels the bot has access to'''
     for channel in bot.get_all_channels():
