@@ -231,8 +231,8 @@ async def listing_watcher():
         for single_search in bot_config.search:
             # Attempt to get new listings up to a certain number
             posting_channel = bot.get_channel(single_search.posting_channel)
-            # print("[listing_watcher]: " + str(single_search.posting_channel))
-            # print("[listing_watcher]: " + str(posting_channel))
+            print("[listing_watcher]: " + str(single_search.posting_channel))
+            print("[listing_watcher]: " + str(posting_channel))
 
             try:
                 new_listings = session.query(Listing).filter(and_(Listing.new == 1, Listing.searchurlid.in_(single_search.search_indecies))).limit(bot_config.posting_limit)
