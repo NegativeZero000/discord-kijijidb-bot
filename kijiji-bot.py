@@ -101,7 +101,7 @@ async def on_ready():
 
 @bot.command(pass_context=True)
 async def ping(context, *args):
-    '''Verifcation that the bot is running and working.'''
+    '''Verification that the bot is running and working.'''
     await context.send(":eight_spoked_asterisk: I'm here {}".format(
         context.message.author))
     # Remove the message that triggered this command
